@@ -18,6 +18,7 @@ export const Route = createRootRoute({
       },
       { name: "theme-color", content: "#2563eb" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "google-site-verification", content: "ZZQFOj8aLtI565Hjev8yj4bVx6WZG5LFpCjiCKK1JYA" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
