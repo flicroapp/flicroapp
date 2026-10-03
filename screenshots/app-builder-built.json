@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "Flicro",
+      "hasCanvas": false,
+      "bodyTextLen": 38,
+      "bodyTextHash": "7bee2ed71794619a91e999caa3616113e5aa6f4d2fc181b8f6a6a058ee47acf3",
+      "bodyTextPrefix": "Flicro Files stay between your devices",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "Flicro",
+      "hasCanvas": false,
+      "bodyTextLen": 38,
+      "bodyTextHash": "7bee2ed71794619a91e999caa3616113e5aa6f4d2fc181b8f6a6a058ee47acf3",
+      "bodyTextPrefix": "Flicro Files stay between your devices",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-built.json",
+  "divergesFromBaseline": false,
+  "baselineReasons": []
+}

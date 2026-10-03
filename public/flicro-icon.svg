@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb" />
+      <stop offset="60%" stop-color="#1d4ed8" />
+      <stop offset="100%" stop-color="#1e40af" />
+    </linearGradient>
+
+    <!-- Top Wing Gradient -->
+    <linearGradient id="topWing" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#67e8f9" />
+    </linearGradient>
+
+    <!-- Mid Wing Gradient -->
+    <linearGradient id="midWing" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+
+    <!-- Soft Depth Shadow -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#0f172a" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- iOS / Modern Squircle -->
+  <rect width="512" height="512" rx="116" fill="url(#bg)" />
+
+  <!-- Subtle Rim Light -->
+  <rect x="4" y="4" width="504" height="504" rx="112" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.25" />
+
+  <!-- Iconic Flicro Energy Emblem -->
+  <g filter="url(#glow)" transform="translate(4, 0)">
+    <!-- Vertical Spine -->
+    <rect x="144" y="128" width="48" height="256" rx="24" fill="#ffffff" />
+
+    <!-- Top Aerodynamic Bar (Fast Flick Wing) -->
+    <path
+      d="M 168 128 L 336 128 C 354 128 368 142 368 160 C 368 178 354 192 336 192 L 168 192 Z"
+      fill="url(#topWing)"
+    />
+
+    <!-- Middle Speed Bar -->
+    <path
+      d="M 168 232 L 296 232 C 314 232 328 246 328 264 C 328 282 314 296 296 296 L 168 296 Z"
+      fill="url(#midWing)"
+    />
+
+    <!-- Forward Dynamic Signal Dot / Pulse -->
+    <circle cx="356" cy="264" r="20" fill="#38bdf8" />
+  </g>
+</svg>

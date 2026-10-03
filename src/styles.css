@@ -1,0 +1,282 @@
+@import "tailwindcss";
+/* The installed app is built with a Vite root of src/native, so these paths
+   have to be listed or the phone bundle drops every utility class. */
+@source "./components";
+@source "./lib";
+@source "./native";
+@source "./routes";
+
+@theme {
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --color-bg: #f0f4f9;
+  --color-surface: #ffffff;
+  --color-ink: #0f172a;
+  --color-muted: #64748b;
+  --color-line: #e2e8f0;
+  --color-sky: #2563eb;
+  --color-sky-ink: #ffffff;
+  --color-sky-soft: #eff6ff;
+  --color-leaf: #10b981;
+  --color-leaf-soft: #ecfdf5;
+  --color-warn: #ef4444;
+  --color-warn-soft: #fef2f2;
+  --color-field: #1e40af;
+  --radius-app: 1rem;
+  --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+}
+
+@layer base {
+  html,
+  body {
+    height: 100%;
+    height: 100dvh;
+    width: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: #1d4ed8;
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    touch-action: manipulation;
+    -webkit-font-smoothing: antialiased;
+    text-size-adjust: 100%;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input,
+  button {
+    font: inherit;
+  }
+
+  /* Permanently hide all browser scrollbars */
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --color-bg: #090d16;
+  --color-surface: #0f172a;
+  --color-ink: #f8fafc;
+  --color-muted: #94a3b8;
+  --color-line: #1e293b;
+  --color-sky-soft: #172554;
+  --color-leaf: #34d399;
+  --color-leaf-soft: #064e3b;
+  --color-warn: #f87171;
+  --color-warn-soft: #450a0a;
+  --color-field: #030712;
+  --shadow-card: 0 4px 20px -2px rgb(0 0 0 / 0.4);
+  background: #030712;
+  color: #f8fafc;
+}
+
+.theme-light {
+  color-scheme: light;
+  --color-bg: #f0f4f9;
+  --color-surface: #ffffff;
+  --color-ink: #0f172a;
+  --color-muted: #64748b;
+  --color-line: #e2e8f0;
+  --color-sky: #2563eb;
+  --color-sky-ink: #ffffff;
+  --color-sky-soft: #eff6ff;
+  --color-leaf: #10b981;
+  --color-leaf-soft: #ecfdf5;
+  --color-warn: #ef4444;
+  --color-warn-soft: #fef2f2;
+  --color-field: #1e40af;
+  --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  color: #0f172a;
+}
+
+/* Dynamic modern mesh gradients */
+.bg-flicro-sky {
+  background: radial-gradient(circle at 50% 15%, #3b82f6 0%, #1d4ed8 50%, #172554 100%);
+}
+
+html[data-theme="dark"] .bg-flicro-sky {
+  background: radial-gradient(circle at 50% 15%, #1e1b4b 0%, #0f172a 50%, #030712 100%);
+}
+
+/* Glassmorphism helpers */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+html[data-theme="dark"] .glass-panel {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.15);
+}
+
+html[data-theme="dark"] .glass-pill {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.dock {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.bar-fill {
+  background: linear-gradient(90deg, #2563eb, #10b981);
+}
+
+/* Radar & Sonar System */
+.radar-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 9999px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.radar-ring-1 {
+  width: 44%;
+  height: 44%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.radar-ring-2 {
+  width: 72%;
+  height: 72%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.radar-ring-3 {
+  width: 98%;
+  height: 98%;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+}
+
+/* Sweeping sonar beam */
+.radar-beam {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, rgba(255, 255, 255, 0.14) 360deg);
+  animation: radar-sweep 4.5s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes radar-sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.radar-wave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 72%;
+  height: 72%;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.6);
+  animation: radar-wave 2.8s cubic-bezier(0.2, 0.8, 0.4, 1) infinite;
+}
+
+.hunt .radar-wave {
+  border-width: 3px;
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.4);
+}
+
+.radar-wave-2 {
+  animation-delay: 0.9s;
+}
+
+.radar-wave-3 {
+  animation-delay: 1.8s;
+}
+
+@keyframes radar-wave {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.45);
+    opacity: 0;
+  }
+}
+
+/* Peer floating animation */
+@keyframes peer-float {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0px);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(-5px);
+  }
+}
+
+.peer-floating {
+  animation: peer-float 3.5s ease-in-out infinite;
+}
+
+.switch-knob {
+  transition: left 160ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch-knob {
+    transition: none;
+  }
+  .radar-beam {
+    display: none;
+  }
+  .radar-wave {
+    animation: none;
+    opacity: 0.35;
+    transform: translate(-50%, -50%) scale(0.72);
+  }
+  .peer-floating {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bar-fill {
+    transition: width 150ms linear;
+  }
+}
