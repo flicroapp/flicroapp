@@ -20,17 +20,15 @@ export function DeviceAvatar({
 }: DeviceAvatarProps) {
   const deviceType = useMemo(() => {
     const text = (name + " " + (typeof navigator !== "undefined" ? navigator.userAgent : "")).toLowerCase();
-    if (text.includes("iphone") || text.includes("ipad") || text.includes("ios") || text.includes("apple")) {
-      return "apple";
+    
+    if (text.includes("windows") || text.includes("pc") || text.includes("desktop")) {
+      return "windows";
     }
     if (text.includes("android") || text.includes("samsung") || text.includes("pixel") || text.includes("xiaomi")) {
       return "android";
     }
-    if (text.includes("windows") || text.includes("pc") || text.includes("desktop")) {
-      return "windows";
-    }
-    if (text.includes("mac") || text.includes("macbook")) {
-      return "mac";
+    if (text.includes("iphone") || text.includes("ipad") || text.includes("ios") || text.includes("mac")) {
+      return "apple";
     }
     return "phone";
   }, [name]);
