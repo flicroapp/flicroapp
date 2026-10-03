@@ -192,12 +192,7 @@ export function HomeScreen({
       {/* Sleek Native App Header */}
       <header className="safe-top sticky top-0 z-30 flex shrink-0 items-center justify-between px-4 py-2.5 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
         <div className="flex items-center gap-2">
-          <svg viewBox="0 0 24 24" className="size-7" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2L3 7v10l9 5 9-5V7L12 2z" fill="#1877f2" />
-            <path d="M12 2v20l9-5V7L12 2z" fill="#0ea5e9" opacity="0.8" />
-            <path d="M12 7v10l-4-2.5V9.5L12 7z" fill="#ffffff" />
-            <path d="M12 7v10l4-2.5V9.5L12 7z" fill="#e0f2fe" />
-          </svg>
+          <img src="/flicro-icon.svg" alt="Flicro Logo" className="size-7" />
           <span className="text-xl font-bold tracking-tight text-slate-900 font-sans">
             Flicro
           </span>
