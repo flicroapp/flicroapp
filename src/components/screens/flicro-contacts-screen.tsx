@@ -151,6 +151,34 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
 
   // Sync / Import from device
   const handleImportNative = async () => {
+    // 1. Try Capacitor native contacts plugin first
+    try {
+      const { Contacts } = await import("@capacitor-community/contacts");
+      const perm = await Contacts.requestPermissions();
+      if (perm.contacts === "granted") {
+        const result = await Contacts.getContacts({
+          projection: { name: true, phones: true, emails: true },
+        });
+        
+        if (result.contacts && result.contacts.length > 0) {
+          const imported: ContactItem[] = result.contacts.map((c, i) => ({
+            id: `imported-${Date.now()}-${i}`,
+            name: c.name?.display || c.name?.given || "Unnamed Contact",
+            phone: c.phones?.[0]?.number || "",
+            email: c.emails?.[0]?.address || undefined,
+          }));
+          saveContacts([...imported, ...contacts]);
+          playChime("success");
+          setSyncToast(`Imported ${imported.length} contacts from device!`);
+          setTimeout(() => setSyncToast(""), 3000);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Capacitor Contacts API not available or failed:", e);
+    }
+
+    // 2. Fallback to Web Contacts API if Capacitor fails or we are in a browser
     if (typeof navigator !== "undefined" && "contacts" in navigator && "ContactsManager" in window) {
       try {
         // @ts-expect-error navigator.contacts API
@@ -158,7 +186,7 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
         if (results && results.length > 0) {
           const imported: ContactItem[] = results.map(
             (c: { name?: string[]; tel?: string[]; email?: string[] }, i: number) => ({
-              id: `imported-${Date.now()}-${i}`,
+              id: `web-${Date.now()}-${i}`,
               name: c.name?.[0] || "Unnamed Contact",
               phone: c.tel?.[0] || "",
               email: c.email?.[0] || undefined,
@@ -166,13 +194,14 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
           );
           saveContacts([...imported, ...contacts]);
           playChime("success");
-          setSyncToast(`Imported ${imported.length} contacts from device!`);
+          setSyncToast(`Imported ${imported.length} contacts from browser!`);
           setTimeout(() => setSyncToast(""), 3000);
           return;
         }
       } catch {}
     }
-    // If native picker is not available or cancelled, prompt for .vcf file
+    
+    // 3. If everything fails or is cancelled, fallback to file upload
     vcfInputRef.current?.click();
   };
 

@@ -16,8 +16,8 @@ export const Route = createRootRoute({
         name: "description",
         content: "Flicro sends files directly from one device to another with high-speed peer-to-peer Wi-Fi transfer.",
       },
-      { name: "theme-color", content: "#ffffff" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "theme-color", content: "#2563eb" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
