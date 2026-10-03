@@ -1149,7 +1149,16 @@ function Splash() {
 }
 
 function LogoMark() {
-  return <img src="/icon-180.png" alt="" className="size-16 rounded-[18px]" />;
+  return (
+    <div className="relative group">
+      <div className="absolute -inset-2 rounded-3xl bg-white/25 blur-lg animate-pulse" />
+      <img
+        src="/flicro-icon-180.png"
+        alt="Flicro"
+        className="relative size-20 rounded-3xl shadow-2xl border-2 border-white/40"
+      />
+    </div>
+  );
 }
 
 const STEPS = [
@@ -2174,60 +2183,91 @@ function WebShare({ room, onJoin, onClose }: { room: string; onJoin: (room: stri
 
   async function scan() {
     setScanError("");
+    if (scanning) {
+      stopRef.current = true;
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      setScanning(false);
+      return;
+    }
+
     if (!navigator.mediaDevices?.getUserMedia) {
       setScanError("No camera support on this browser.");
       return;
     }
+
     stopRef.current = false;
+    setScanning(true);
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
-        audio: false,
-      });
-      streamRef.current = stream;
-      const video = videoRef.current;
-      if (!video) {
-        stream.getTracks().forEach((track) => track.stop());
-        return;
+      let stream: MediaStream | null = null;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false,
+        });
+      } catch {
+        // Fallback for laptops/webcams without environment lens
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
       }
-      video.srcObject = stream;
-      setScanning(true);
-      await video.play();
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      const started = Date.now();
-      const tick = () => {
-        if (stopRef.current) return;
-        if (!ctx || video.readyState < 2) {
+
+      streamRef.current = stream;
+      
+      // Allow video element to mount
+      setTimeout(async () => {
+        const video = videoRef.current;
+        if (!video || stopRef.current) {
+          stream?.getTracks().forEach((track) => track.stop());
+          return;
+        }
+
+        video.srcObject = stream;
+        await video.play().catch(() => {});
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d", { willReadFrequently: true });
+        const started = Date.now();
+
+        const tick = () => {
+          if (stopRef.current || !streamRef.current) return;
+          if (!ctx || video.readyState < 2) {
+            requestAnimationFrame(tick);
+            return;
+          }
+
+          if (Date.now() - started > 45000) {
+            setScanError("No QR code detected. Try typing the code.");
+            stream?.getTracks().forEach((track) => track.stop());
+            setScanning(false);
+            return;
+          }
+
+          const width = Math.min(video.videoWidth || 640, 720);
+          const height = Math.max(1, Math.round(width * ((video.videoHeight || 640) / (video.videoWidth || 640))));
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(video, 0, 0, width, height);
+          const image = ctx.getImageData(0, 0, width, height);
+          const found = jsQR(image.data, width, height, { inversionAttempts: "attemptBoth" });
+          const raw = found?.data ?? "";
+
+          if (parseJoinCode(raw, window.location.origin)) {
+            stream?.getTracks().forEach((track) => track.stop());
+            setScanning(false);
+            take(raw);
+            return;
+          }
+
           requestAnimationFrame(tick);
-          return;
-        }
-        if (Date.now() - started > 30000) {
-          setScanError("No QR code detected. Try typing the code.");
-          stream.getTracks().forEach((track) => track.stop());
-          setScanning(false);
-          return;
-        }
-        const width = Math.min(video.videoWidth || 640, 720);
-        const height = Math.max(1, Math.round(width * ((video.videoHeight || 640) / (video.videoWidth || 640))));
-        canvas.width = width;
-        canvas.height = height;
-        ctx.drawImage(video, 0, 0, width, height);
-        const image = ctx.getImageData(0, 0, width, height);
-        const found = jsQR(image.data, width, height, { inversionAttempts: "attemptBoth" });
-        const raw = found?.data ?? "";
-        if (parseJoinCode(raw, window.location.origin)) {
-          stream.getTracks().forEach((track) => track.stop());
-          setScanning(false);
-          take(raw);
-          return;
-        }
+        };
         requestAnimationFrame(tick);
-      };
-      requestAnimationFrame(tick);
-    } catch {
+      }, 50);
+    } catch (err) {
       setScanning(false);
-      setScanError("Camera permission denied.");
+      setScanError("Camera access denied or unavailable.");
     }
   }
 

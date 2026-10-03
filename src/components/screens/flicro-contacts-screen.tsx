@@ -1,19 +1,17 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import {
   Users,
   UserRound,
-  Layers,
   ChevronRight,
   Download,
   Search,
   Plus,
   X,
-  Phone,
-  Mail,
   Trash2,
   Upload,
   UserCheck,
   Contact,
+  Check,
 } from "lucide-react";
 import { playChime } from "@/lib/flicro/sound";
 
@@ -21,7 +19,7 @@ interface ContactsScreenProps {
   onBack?: () => void;
 }
 
-interface ContactItem {
+export interface ContactItem {
   id: string;
   name: string;
   phone: string;
@@ -32,7 +30,14 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
   const [contacts, setContacts] = useState<ContactItem[]>(() => {
     try {
       const saved = localStorage.getItem("flicro_contacts");
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Filter out any previous sample contacts
+          const real = parsed.filter((c) => !c.id.startsWith("c-"));
+          return real;
+        }
+      }
     } catch {}
     return [];
   });
@@ -40,6 +45,7 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
   const [activeModal, setActiveModal] = useState<"all" | "incomplete" | "duplicates" | "add" | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [backupToast, setBackupToast] = useState(false);
+  const [syncToast, setSyncToast] = useState("");
 
   // New Contact Form fields
   const [newName, setNewName] = useState("");
@@ -48,7 +54,7 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
 
   const vcfInputRef = useRef<HTMLInputElement>(null);
 
-  // Persist contacts to localStorage
+  // Persist real contacts to localStorage
   const saveContacts = (updated: ContactItem[]) => {
     setContacts(updated);
     try {
@@ -56,7 +62,22 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
     } catch {}
   };
 
-  // Find real duplicate contacts
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("flicro_contacts");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const real = parsed.filter((c) => !c.id.startsWith("c-"));
+          if (real.length !== parsed.length) {
+            localStorage.setItem("flicro_contacts", JSON.stringify(real));
+          }
+        }
+      }
+    } catch {}
+  }, []);
+
+  // Find duplicate contacts
   const duplicateContacts = useMemo(() => {
     const seen = new Map<string, ContactItem>();
     const dupes: ContactItem[] = [];
@@ -74,6 +95,30 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
   const incompleteContacts = useMemo(() => {
     return contacts.filter((c) => !c.email || !c.phone);
   }, [contacts]);
+
+  // Merge Duplicates
+  const handleMergeDuplicates = () => {
+    playChime("drop");
+    const uniqueMap = new Map<string, ContactItem>();
+    contacts.forEach((c) => {
+      const key = (c.phone || c.name).toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, c);
+      } else {
+        const existing = uniqueMap.get(key)!;
+        uniqueMap.set(key, {
+          ...existing,
+          email: existing.email || c.email,
+          phone: existing.phone || c.phone,
+        });
+      }
+    });
+    const cleaned = Array.from(uniqueMap.values());
+    saveContacts(cleaned);
+    playChime("success");
+    setSyncToast(`Merged duplicates! ${cleaned.length} unique contacts saved.`);
+    setTimeout(() => setSyncToast(""), 3000);
+  };
 
   // Real backup: vCard format
   const handleBackup = () => {
@@ -104,7 +149,7 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
     setTimeout(() => setBackupToast(false), 2500);
   };
 
-  // Real import from device
+  // Sync / Import from device
   const handleImportNative = async () => {
     if (typeof navigator !== "undefined" && "contacts" in navigator && "ContactsManager" in window) {
       try {
@@ -121,10 +166,13 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
           );
           saveContacts([...imported, ...contacts]);
           playChime("success");
+          setSyncToast(`Imported ${imported.length} contacts from device!`);
+          setTimeout(() => setSyncToast(""), 3000);
           return;
         }
       } catch {}
     }
+    // If native picker is not available or cancelled, prompt for .vcf file
     vcfInputRef.current?.click();
   };
 
@@ -156,6 +204,8 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
       if (parsed.length > 0) {
         saveContacts([...parsed, ...contacts]);
         playChime("success");
+        setSyncToast(`Successfully imported ${parsed.length} contacts!`);
+        setTimeout(() => setSyncToast(""), 3000);
       }
     };
     reader.readAsText(file);
@@ -197,7 +247,7 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
   return (
     <div className="flex h-full w-full flex-col bg-[#f8fafc] text-slate-800 select-none overflow-y-auto font-sans">
       {/* Header */}
-      <header className="safe-top flex shrink-0 items-center justify-between px-4 py-2.5 bg-white border-b border-slate-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      <header className="safe-top flex shrink-0 items-center justify-between px-4 py-2.5 bg-white border-b border-slate-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)] z-20">
         <div className="flex items-center gap-2">
           {onBack && (
             <button
@@ -222,7 +272,14 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 px-4 py-3 max-w-lg mx-auto w-full space-y-3.5">
+      <main className="flex-1 px-4 py-3 max-w-lg mx-auto w-full space-y-3.5 pb-8">
+        {syncToast && (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow-xs animate-in fade-in flex items-center justify-between">
+            <span>{syncToast}</span>
+            <Check className="size-4 text-emerald-600" />
+          </div>
+        )}
+
         {/* Sleek Grouped Utility Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 divide-y divide-slate-100/80 overflow-hidden">
           {/* Item 1: All Contacts */}
@@ -298,56 +355,70 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
           </button>
         </div>
 
-        {/* Compact Import Action */}
+        {/* Sync / Import Button */}
         <button
           type="button"
           onClick={handleImportNative}
-          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white border border-slate-200/80 text-[#1877f2] font-semibold text-xs hover:bg-blue-50/50 active:scale-98 transition-all shadow-xs cursor-pointer"
+          className="w-full py-3 px-4 rounded-xl bg-white border border-slate-200/80 hover:bg-slate-50 text-[#1877f2] font-semibold text-xs flex items-center justify-center gap-2 shadow-xs active:scale-[0.99] transition-all cursor-pointer"
         >
           <Upload className="size-4" />
           <span>Import Contacts (.vcf or Device)</span>
         </button>
 
-        {backupToast && (
-          <p className="text-center text-xs font-medium text-emerald-600 animate-in fade-in">
-            ✓ Contacts exported successfully
-          </p>
-        )}
-
-        {/* Quick Contact List Preview if contacts exist */}
-        {contacts.length > 0 && (
-          <div className="space-y-1.5 pt-1">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-1">
-              Recent Contacts
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 divide-y divide-slate-100/80 overflow-hidden">
-              {contacts.slice(0, 6).map((c) => (
-                <div key={c.id} className="p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="size-8 rounded-full bg-blue-50 text-[#1877f2] font-bold text-xs flex items-center justify-center shrink-0">
-                      {c.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-slate-800 truncate">{c.name}</p>
-                      <p className="text-[10px] text-slate-400 truncate">{c.phone || c.email || "No details"}</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteContact(c.id)}
-                    className="p-1 text-slate-300 hover:text-rose-500 rounded transition-colors"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
+        {/* Contacts Preview List / Empty State */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Device Contacts List</h2>
+            <span className="text-[11px] text-slate-400">{contacts.length} total</span>
           </div>
-        )}
+
+          {contacts.length > 0 ? (
+            <>
+              <div className="divide-y divide-slate-100">
+                {contacts.slice(0, 5).map((contact) => (
+                  <div key={contact.id} className="py-2.5 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="size-7 rounded-full bg-blue-50 text-[#1877f2] font-bold text-xs flex items-center justify-center">
+                        {contact.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800">{contact.name}</p>
+                        <p className="text-[10px] text-slate-400">{contact.phone || contact.email || "No contact info"}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteContact(contact.id)}
+                      className="text-slate-300 hover:text-rose-500 p-1 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {contacts.length > 5 && (
+                <button
+                  type="button"
+                  onClick={() => setActiveModal("all")}
+                  className="w-full text-center text-xs font-bold text-[#1877f2] pt-1 hover:underline cursor-pointer"
+                >
+                  View all {contacts.length} contacts
+                </button>
+              )}
+            </>
+          ) : (
+            <div className="py-8 text-center text-slate-400 space-y-1">
+              <p className="text-xs font-medium text-slate-600">No contacts saved</p>
+              <p className="text-[11px] text-slate-400">
+                Tap "+ New" above or import a .vcf contact file to add your contacts.
+              </p>
+            </div>
+          )}
+        </div>
       </main>
 
-      {/* Hidden File Input for VCF */}
+      {/* Hidden vCard File Input */}
       <input
         ref={vcfInputRef}
         type="file"
@@ -356,126 +427,235 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
         onChange={(e) => handleImportVcfFile(e.target.files)}
       />
 
-      {/* Add / View Modals */}
-      {activeModal === "add" && (
+      {/* Modal: All Contacts */}
+      {activeModal === "all" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in">
-          <form
-            onSubmit={handleAddSingleContact}
-            className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl text-slate-800 space-y-3.5"
-          >
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-slate-900">Add New Contact</h3>
+          <div className="w-full max-w-md bg-white rounded-3xl p-5 shadow-2xl flex flex-col max-h-[85vh] overflow-hidden space-y-4">
+            <div className="flex items-center justify-between shrink-0">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">All Contacts ({contacts.length})</h3>
+                <p className="text-xs text-slate-400">Search and manage stored contacts</p>
+              </div>
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="p-1 text-slate-400 hover:bg-slate-100 rounded-full"
+                className="p-1 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
               >
-                <X className="size-4" />
+                <X className="size-5" />
               </button>
             </div>
 
-            <div className="space-y-2.5 text-xs">
-              <div>
-                <label className="block text-[11px] font-medium text-slate-500 mb-1">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  placeholder="e.g. John Doe"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-[#1877f2]"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-medium text-slate-500 mb-1">Phone Number</label>
-                <input
-                  type="tel"
-                  value={newPhone}
-                  onChange={(e) => setNewPhone(e.target.value)}
-                  placeholder="e.g. +1 234 567 8900"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-[#1877f2]"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-medium text-slate-500 mb-1">Email (Optional)</label>
-                <input
-                  type="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="e.g. john@example.com"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-[#1877f2]"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-1.5 rounded-lg bg-[#1877f2] hover:bg-[#1466e3] text-white text-xs font-semibold"
-              >
-                Save Contact
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* View All / Duplicates Modal */}
-      {(activeModal === "all" || activeModal === "duplicates" || activeModal === "incomplete") && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-4 shadow-xl text-slate-800 space-y-3 max-h-[80vh] flex flex-col">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 shrink-0">
-              <h3 className="text-sm font-bold text-slate-900 capitalize">
-                {activeModal === "all" ? "All Contacts" : activeModal === "duplicates" ? "Duplicate Contacts" : "Incomplete Contacts"}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setActiveModal(null)}
-                className="p-1 text-slate-400 hover:bg-slate-100 rounded-full"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-
+            {/* Search Input */}
             <div className="relative shrink-0">
-              <Search className="absolute left-3 top-2.5 size-3.5 text-slate-400" />
+              <Search className="size-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
+                placeholder="Search name, phone or email..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search contacts…"
-                className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-[#1877f2]"
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs focus:outline-hidden focus:border-[#1877f2]"
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
-              {(activeModal === "duplicates" ? duplicateContacts : activeModal === "incomplete" ? incompleteContacts : filteredContacts).length === 0 ? (
-                <p className="text-center text-xs text-slate-400 py-6">No contacts found</p>
-              ) : (
-                (activeModal === "duplicates" ? duplicateContacts : activeModal === "incomplete" ? incompleteContacts : filteredContacts).map((c) => (
-                  <div key={c.id} className="py-2.5 px-1 flex items-center justify-between">
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-slate-800 truncate">{c.name}</p>
-                      <p className="text-[10px] text-slate-400 truncate">{c.phone || c.email || "No details"}</p>
+            {/* List */}
+            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 min-h-0 pr-1">
+              {filteredContacts.length > 0 ? (
+                filteredContacts.map((c) => (
+                  <div key={c.id} className="py-2.5 flex items-center justify-between">
+                    <div className="min-w-0 pr-2">
+                      <p className="text-xs font-bold text-slate-800 truncate">{c.name}</p>
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-slate-500">
+                        {c.phone && <span>{c.phone}</span>}
+                        {c.email && <span className="text-slate-400">{c.email}</span>}
+                      </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleDeleteContact(c.id)}
-                      className="p-1 text-slate-300 hover:text-rose-500 rounded"
+                      className="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors shrink-0"
                     >
-                      <Trash2 className="size-3.5" />
+                      <Trash2 className="size-4" />
                     </button>
                   </div>
                 ))
+              ) : (
+                <div className="py-12 text-center text-slate-400 text-xs">No matching contacts found</div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Duplicate Contacts */}
+      {activeModal === "duplicates" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="w-full max-w-md bg-white rounded-3xl p-5 shadow-2xl flex flex-col max-h-[85vh] overflow-hidden space-y-4">
+            <div className="flex items-center justify-between shrink-0">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Duplicates ({duplicateContacts.length})</h3>
+                <p className="text-xs text-slate-400">Merge or delete repeated contact entries</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveModal(null)}
+                className="p-1 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            {duplicateContacts.length > 0 && (
+              <button
+                type="button"
+                onClick={handleMergeDuplicates}
+                className="w-full py-2.5 rounded-xl bg-[#1877f2] hover:bg-[#1466e3] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>Merge & Clean All Duplicates</span>
+              </button>
+            )}
+
+            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 min-h-0">
+              {duplicateContacts.length > 0 ? (
+                duplicateContacts.map((c) => (
+                  <div key={c.id} className="py-2.5 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">{c.name}</p>
+                      <p className="text-[11px] text-slate-500">{c.phone || c.email}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteContact(c.id)}
+                      className="p-1.5 text-slate-300 hover:text-rose-500 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="py-12 text-center text-slate-400 text-xs">
+                  <UserCheck className="size-8 text-emerald-500 mx-auto mb-2" />
+                  No duplicate contacts detected!
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Incomplete Contacts */}
+      {activeModal === "incomplete" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="w-full max-w-md bg-white rounded-3xl p-5 shadow-2xl flex flex-col max-h-[85vh] overflow-hidden space-y-4">
+            <div className="flex items-center justify-between shrink-0">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Incomplete Contacts ({incompleteContacts.length})</h3>
+                <p className="text-xs text-slate-400">Missing phone numbers or emails</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveModal(null)}
+                className="p-1 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto divide-y divide-slate-100 min-h-0">
+              {incompleteContacts.length > 0 ? (
+                incompleteContacts.map((c) => (
+                  <div key={c.id} className="py-2.5 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">{c.name}</p>
+                      <p className="text-[11px] text-amber-600 font-medium">
+                        {!c.phone ? "Missing phone number" : "Missing email address"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteContact(c.id)}
+                      className="p-1.5 text-slate-300 hover:text-rose-500 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="py-12 text-center text-slate-400 text-xs">
+                  <UserCheck className="size-8 text-emerald-500 mx-auto mb-2" />
+                  All contacts have complete information!
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Add Contact */}
+      {activeModal === "add" && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="w-full max-w-md bg-white rounded-3xl p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-slate-900">Add New Contact</h3>
+              <button
+                type="button"
+                onClick={() => setActiveModal(null)}
+                className="p-1 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddSingleContact} className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-slate-700">Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. John Doe"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs focus:outline-hidden focus:border-[#1877f2]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700">Phone Number</label>
+                <input
+                  type="tel"
+                  placeholder="e.g. +1 555-0199"
+                  value={newPhone}
+                  onChange={(e) => setNewPhone(e.target.value)}
+                  className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs focus:outline-hidden focus:border-[#1877f2]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700">Email Address</label>
+                <input
+                  type="email"
+                  placeholder="e.g. john@example.com"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200/80 rounded-xl text-xs focus:outline-hidden focus:border-[#1877f2]"
+                />
+              </div>
+
+              <div className="pt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveModal(null)}
+                  className="w-1/2 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 rounded-xl bg-[#1877f2] hover:bg-[#1466e3] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                >
+                  Save Contact
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

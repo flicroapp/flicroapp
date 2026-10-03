@@ -160,10 +160,9 @@ async function freshIdToken(saved: Saved): Promise<string> {
 }
 
 async function googleAuth() {
-  const { getApp, getApps, initializeApp } = await import("firebase/app");
+  const { getFirebaseApp } = await import("@/lib/flicro/firebase-config");
   const { getAuth } = await import("firebase/auth");
-  const app = getApps().length ? getApp() : initializeApp({ ...firebaseConfig, apiKey: firebaseApiKey() });
-  return getAuth(app);
+  return getAuth(getFirebaseApp());
 }
 
 function firebaseErrorCode(err: unknown): string {

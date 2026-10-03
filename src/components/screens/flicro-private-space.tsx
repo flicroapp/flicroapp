@@ -15,20 +15,31 @@ import {
   Shield,
   Fingerprint,
   File,
+  Download,
+  HardDrive,
 } from "lucide-react";
 import { formatBytes, uid } from "@/lib/flicro/format";
 import { playChime } from "@/lib/flicro/sound";
+import {
+  saveVaultItem,
+  getVaultItems,
+  deleteVaultItem,
+  getVaultTotalSize,
+  enablePersistentStorage,
+  type VaultRecord,
+} from "@/lib/flicro/vault-db";
 
 interface PrivateSpaceProps {
   onBack: () => void;
 }
 
-interface VaultItem {
+interface DisplayVaultItem {
   id: string;
   name: string;
   size: number;
   type: string;
-  dataUrl: string;
+  blob: Blob;
+  previewUrl: string;
   addedAt: number;
 }
 
@@ -37,23 +48,44 @@ export function PrivateSpaceScreen({ onBack }: PrivateSpaceProps) {
   const [unlocked, setUnlocked] = useState(false);
   const [storedPin, setStoredPin] = useState<string | null>(null);
   const [error, setError] = useState("");
-  const [vaultItems, setVaultItems] = useState<VaultItem[]>([]);
+  const [vaultItems, setVaultItems] = useState<DisplayVaultItem[]>([]);
   const [activeTab, setActiveTab] = useState<"all" | "photos" | "videos" | "files">("all");
-  const [previewItem, setPreviewItem] = useState<VaultItem | null>(null);
+  const [previewItem, setPreviewItem] = useState<DisplayVaultItem | null>(null);
+  const [vaultTotalSize, setVaultTotalSize] = useState(0);
+  const [loadingItems, setLoadingItems] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("flicro-private-pin");
     setStoredPin(saved);
-    const savedVault = localStorage.getItem("flicro-vault-items");
-    if (savedVault) {
-      try {
-        setVaultItems(JSON.parse(savedVault));
-      } catch {
-        /* ignore */
-      }
-    }
+    enablePersistentStorage();
   }, []);
+
+  const loadAllVaultItems = async () => {
+    setLoadingItems(true);
+    try {
+      const records = await getVaultItems();
+      const displayItems: DisplayVaultItem[] = records.map((r) => ({
+        id: r.id,
+        name: r.name,
+        size: r.size,
+        type: r.type,
+        blob: r.blob,
+        previewUrl: URL.createObjectURL(r.blob),
+        addedAt: r.addedAt,
+      }));
+      setVaultItems(displayItems);
+      const total = await getVaultTotalSize();
+      setVaultTotalSize(total);
+    } catch {}
+    setLoadingItems(false);
+  };
+
+  useEffect(() => {
+    if (unlocked) {
+      loadAllVaultItems();
+    }
+  }, [unlocked]);
 
   const handleKeyPress = (num: string) => {
     if (pin.length >= 4) return;
@@ -86,44 +118,38 @@ export function PrivateSpaceScreen({ onBack }: PrivateSpaceProps) {
     setError("");
   };
 
-  const handleAddFiles = (fileList: FileList | null) => {
+  const handleAddFiles = async (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
-    const newItems: VaultItem[] = [];
 
-    Array.from(fileList).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const item: VaultItem = {
-          id: uid(),
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          dataUrl: String(reader.result),
-          addedAt: Date.now(),
-        };
-        newItems.push(item);
-        if (newItems.length === fileList.length) {
-          const updated = [...newItems, ...vaultItems];
-          setVaultItems(updated);
-          localStorage.setItem("flicro-vault-items", JSON.stringify(updated.slice(0, 50)));
-          playChime("success");
-        }
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
+      const record: VaultRecord = {
+        id: uid(),
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        blob: file,
+        addedAt: Date.now(),
       };
-      reader.readAsDataURL(file);
-    });
+      await saveVaultItem(record);
+    }
+
+    playChime("success");
+    await loadAllVaultItems();
   };
 
-  const handleRemoveVaultItem = (id: string) => {
-    const updated = vaultItems.filter((item) => item.id !== id);
-    setVaultItems(updated);
-    localStorage.setItem("flicro-vault-items", JSON.stringify(updated));
+  const handleRemoveVaultItem = async (id: string) => {
+    playChime("drop");
+    await deleteVaultItem(id);
+    await loadAllVaultItems();
   };
 
-  const handleExportItem = (item: VaultItem) => {
+  const handleExportItem = (item: DisplayVaultItem) => {
     const a = document.createElement("a");
-    a.href = item.dataUrl;
+    a.href = item.previewUrl;
     a.download = item.name;
     a.click();
+    playChime("success");
   };
 
   // If Vault is unlocked, show Private Vault contents
@@ -138,7 +164,7 @@ export function PrivateSpaceScreen({ onBack }: PrivateSpaceProps) {
     return (
       <div className="flex h-full w-full flex-col bg-[#f8fafc] text-slate-800 select-none overflow-hidden font-sans">
         {/* Header */}
-        <header className="safe-top flex shrink-0 items-center justify-between px-4 py-2.5 bg-white border-b border-slate-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+        <header className="safe-top flex shrink-0 items-center justify-between px-4 py-2.5 bg-white border-b border-slate-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)] z-20">
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -166,22 +192,27 @@ export function PrivateSpaceScreen({ onBack }: PrivateSpaceProps) {
           </div>
         </header>
 
-        {/* Categories Bar */}
-        <div className="bg-white border-b border-slate-100 px-4 py-1.5 flex gap-2 overflow-x-auto text-xs font-medium">
-          {(["all", "photos", "videos", "files"] as const).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`px-3 py-1 rounded-full capitalize transition-colors cursor-pointer ${
-                activeTab === tab
-                  ? "bg-[#1877f2] text-white font-semibold shadow-xs"
-                  : "text-slate-600 hover:bg-slate-100"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        {/* Info & Categories Bar */}
+        <div className="bg-white border-b border-slate-100 px-4 py-2 flex items-center justify-between">
+          <div className="flex gap-1.5 overflow-x-auto text-xs font-medium">
+            {(["all", "photos", "videos", "files"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`px-3 py-1 rounded-full capitalize transition-colors cursor-pointer ${
+                  activeTab === tab
+                    ? "bg-[#1877f2] text-white font-semibold shadow-xs"
+                    : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+          <div className="text-[11px] text-slate-400 font-medium shrink-0">
+            {formatBytes(vaultTotalSize)} stored
+          </div>
         </div>
 
         {/* Content */}
@@ -192,9 +223,9 @@ export function PrivateSpaceScreen({ onBack }: PrivateSpaceProps) {
                 <Lock className="size-7" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-sm font-semibold text-slate-800">No private files</h3>
+                <h3 className="text-sm font-semibold text-slate-800">No private files stored</h3>
                 <p className="text-xs text-slate-400 max-w-xs">
-                  Encrypted files saved here are stored only in your local browser storage.
+                  Files saved here are permanently stored in your device's persistent storage until you delete them.
                 </p>
               </div>
               <button
@@ -203,7 +234,7 @@ export function PrivateSpaceScreen({ onBack }: PrivateSpaceProps) {
                 className="px-4 py-2 rounded-xl bg-[#1877f2] text-white text-xs font-semibold hover:bg-[#1466e3] active:scale-95 transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
               >
                 <Plus className="size-4" />
-                Add Photos or Files
+                Add Photos, Videos or Files
               </button>
             </div>
           ) : (
@@ -215,7 +246,7 @@ export function PrivateSpaceScreen({ onBack }: PrivateSpaceProps) {
                 >
                   <div className="aspect-square rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden mb-2">
                     {item.type.startsWith("image/") ? (
-                      <img src={item.dataUrl} alt={item.name} className="size-full object-cover" />
+                      <img src={item.previewUrl} alt={item.name} className="size-full object-cover" />
                     ) : item.type.startsWith("video/") ? (
                       <VideoIcon className="size-8 text-indigo-500" />
                     ) : (
@@ -231,9 +262,9 @@ export function PrivateSpaceScreen({ onBack }: PrivateSpaceProps) {
                       type="button"
                       onClick={() => handleExportItem(item)}
                       className="p-1 text-slate-400 hover:text-[#1877f2] rounded transition-colors"
-                      title="Save"
+                      title="Download to device"
                     >
-                      <Eye className="size-3.5" />
+                      <Download className="size-3.5" />
                     </button>
                     <button
                       type="button"
@@ -265,7 +296,7 @@ export function PrivateSpaceScreen({ onBack }: PrivateSpaceProps) {
   return (
     <div className="flex h-full w-full flex-col bg-white text-slate-800 select-none overflow-hidden font-sans">
       {/* Header */}
-      <header className="safe-top flex shrink-0 items-center justify-between px-4 py-3">
+      <header className="safe-top flex shrink-0 items-center justify-between px-4 py-3 bg-white z-20">
         <button
           type="button"
           onClick={onBack}

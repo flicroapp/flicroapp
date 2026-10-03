@@ -3,15 +3,11 @@ import {
   ArrowLeft,
   CircleHelp,
   ScanLine,
-  Send,
-  Plus,
-  QrCode,
-  Laptop,
-  Smartphone,
-  Check,
 } from "lucide-react";
 import type { PeerInfo } from "@/lib/multiplayer";
 import { formatCode } from "@/lib/flicro/format";
+import { DeviceAvatar } from "@/components/device-avatar";
+import { loadPhoto } from "@/lib/flicro/storage";
 
 interface RadarScreenProps {
   mode: "send" | "receive";
@@ -44,6 +40,7 @@ export function RadarScreen({
 }: RadarScreenProps) {
   const isSend = mode === "send";
   const title = isSend ? "Click the avatar to Send" : "Waiting to Receive";
+  const myPhoto = typeof window !== "undefined" ? loadPhoto() : null;
 
   // Concentric radar wave pulsing
   const [pulse, setPulse] = useState(0);
@@ -54,9 +51,8 @@ export function RadarScreen({
 
   return (
     <div className="fixed inset-0 z-40 flex flex-col bg-[#1877f2] text-white select-none overflow-hidden font-sans">
-      {/* Top Header matching Screenshot 2 & 3 */}
+      {/* Top Header */}
       <header className="safe-top flex shrink-0 items-center justify-between px-4 pt-3 pb-2 z-20">
-        {/* Left: Back button < */}
         <button
           type="button"
           onClick={onBack}
@@ -66,12 +62,10 @@ export function RadarScreen({
           <ArrowLeft className="size-6 stroke-[2.4]" />
         </button>
 
-        {/* Center: Title */}
         <h1 className="text-base sm:text-lg font-semibold tracking-tight text-white text-center">
           {title}
         </h1>
 
-        {/* Right: Help ? */}
         <button
           type="button"
           onClick={onHelp}
@@ -96,7 +90,6 @@ export function RadarScreen({
 
       {/* Main Animated Concentric Radar Workspace */}
       <div className="relative flex-1 flex items-center justify-center min-h-0 overflow-hidden">
-        {/* Radar concentric circular waves matching Screenshots 2 & 3 */}
         <div className="relative size-[min(82vw,360px)] sm:size-[380px] flex items-center justify-center">
           {/* Animated concentric circles */}
           <div className="absolute inset-0 rounded-full border border-white/20 pointer-events-none scale-100" />
@@ -131,18 +124,14 @@ export function RadarScreen({
                   transform: "translate(-50%, -50%)",
                 }}
               >
-                <div className="relative size-14 rounded-full bg-white p-0.5 shadow-xl border-2 border-white">
-                  <img
-                    src={peer.photo || "/avatar-character.jpg"}
-                    alt={peer.name}
-                    className="size-full rounded-full object-cover"
-                  />
-                  <span
-                    className={`absolute bottom-0 right-0 size-3.5 rounded-full border-2 border-white ${
-                      isReady ? "bg-emerald-400" : "bg-amber-400"
-                    }`}
-                  />
-                </div>
+                <DeviceAvatar
+                  name={peer.name}
+                  photo={peer.photo}
+                  size="lg"
+                  showBadge
+                  isOnline={isReady}
+                  className="shadow-xl"
+                />
                 <span className="mt-1 max-w-[80px] truncate text-xs font-bold text-white drop-shadow">
                   {peer.name || "Device"}
                 </span>
@@ -150,7 +139,7 @@ export function RadarScreen({
             );
           })}
 
-          {/* Center Avatar (matching Screenshots 2 & 3) */}
+          {/* Center Self Avatar */}
           <div className="relative z-20 flex flex-col items-center">
             {/* File count badge above avatar for Send mode */}
             {isSend && pickedCount > 0 && (
@@ -161,21 +150,23 @@ export function RadarScreen({
               </div>
             )}
 
-            {/* Avatar circle with white/blue progress border */}
+            {/* Avatar circle with official device SVG / custom photo */}
             <div className="relative group cursor-pointer" onClick={() => peers[0] && onPickPeer(peers[0].id)}>
-              {/* Outer circular progress arc */}
-              <div className="size-24 sm:size-28 rounded-full border-4 border-white/80 flex items-center justify-center p-1 shadow-2xl bg-white/10 backdrop-blur-sm">
-                <img
-                  src="/avatar-character.jpg"
-                  alt="My Avatar"
-                  className="size-full rounded-full object-cover shadow-inner group-hover:scale-105 transition-transform"
+              <div className="p-1 rounded-full border-4 border-white/80 shadow-2xl bg-white/10 backdrop-blur-sm">
+                <DeviceAvatar
+                  name={name}
+                  photo={myPhoto}
+                  size="xl"
+                  showBadge
+                  isOnline
+                  className="group-hover:scale-105 transition-transform"
                 />
               </div>
             </div>
 
             {/* Device Name below avatar */}
             <p className="mt-2 text-sm sm:text-base font-semibold text-white tracking-wide drop-shadow">
-              {name || (typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent) ? "Android" : typeof navigator !== "undefined" && /iPhone|iPad/i.test(navigator.userAgent) ? "iPhone" : "Local Device")}
+              {name || (typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent) ? "Android" : typeof navigator !== "undefined" && /iPhone|iPad/i.test(navigator.userAgent) ? "iPhone" : "My Device")}
             </p>
           </div>
         </div>
@@ -184,26 +175,23 @@ export function RadarScreen({
       {/* Bottom Section: White Card with Floating Circular Scanner Button */}
       <div className="shrink-0 bg-white rounded-t-[32px] pt-4 pb-8 px-6 text-center text-slate-900 shadow-2xl relative z-30">
         <div className="flex flex-col items-center -mt-10">
-          {/* Floating Circular Blue Scanner Button */}
           <button
             type="button"
             onClick={onOpenScanner}
             className="group size-16 rounded-full bg-[#1877f2] flex items-center justify-center text-white border-4 border-white shadow-xl hover:bg-[#1466e3] active:scale-95 transition-all cursor-pointer"
-            aria-label="Connect to Android or PC"
+            aria-label="Pair Device Scanner"
           >
             <ScanLine className="size-8 group-hover:scale-110 transition-transform stroke-[2.3]" />
           </button>
 
-          {/* Text below scanner button matching screenshots 2 & 3 */}
           <button
             type="button"
             onClick={onOpenScanner}
             className="mt-2 text-sm font-semibold text-[#1877f2] hover:underline cursor-pointer"
           >
-            Connect to Android
+            Pair / Scan QR Code
           </button>
 
-          {/* Room invite code fallback */}
           <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
             <span>Room code:</span>
             <span className="font-mono font-bold tracking-wider text-slate-800">

@@ -33,7 +33,7 @@
     width: 100%;
     margin: 0;
     overflow: hidden;
-    background: #1d4ed8;
+    background: var(--color-bg);
     color: var(--color-ink);
     font-family: var(--font-sans);
     touch-action: manipulation;

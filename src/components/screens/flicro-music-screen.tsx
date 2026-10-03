@@ -157,7 +157,7 @@ export function MusicScreen() {
   return (
     <div className="flex h-full w-full flex-col bg-[#f8fafc] text-slate-800 select-none overflow-y-auto font-sans">
       {/* Header */}
-      <header className="safe-top flex shrink-0 items-center justify-between px-4 py-2.5 bg-white border-b border-slate-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      <header className="safe-top flex shrink-0 items-center justify-between px-4 py-2.5 bg-white border-b border-slate-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)] z-20">
         <div className="flex items-center gap-2">
           <div className="size-7 rounded-lg bg-blue-50 text-[#1877f2] flex items-center justify-center">
             <Music className="size-4" />

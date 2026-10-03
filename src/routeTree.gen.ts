@@ -14,6 +14,7 @@ import { Route as ApiNearbyRouteImport } from './routes/api/nearby'
 import { Route as ApiNetworkRouteImport } from './routes/api/network'
 import { Route as ApiOnlineRouteImport } from './routes/api/online'
 import { Route as ApiRtcRouteImport } from './routes/api/rtc'
+import { Route as ApiStorageRouteImport } from './routes/api/storage'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const ApiRtcRoute = ApiRtcRouteImport.update({
   path: '/api/rtc',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStorageRoute = ApiStorageRouteImport.update({
+  id: '/api/storage',
+  path: '/api/storage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/api/network': typeof ApiNetworkRoute
   '/api/online': typeof ApiOnlineRoute
   '/api/rtc': typeof ApiRtcRoute
+  '/api/storage': typeof ApiStorageRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/api/network': typeof ApiNetworkRoute
   '/api/online': typeof ApiOnlineRoute
   '/api/rtc': typeof ApiRtcRoute
+  '/api/storage': typeof ApiStorageRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,12 +70,25 @@ export interface FileRoutesById {
   '/api/network': typeof ApiNetworkRoute
   '/api/online': typeof ApiOnlineRoute
   '/api/rtc': typeof ApiRtcRoute
+  '/api/storage': typeof ApiStorageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/nearby' | '/api/network' | '/api/online' | '/api/rtc'
+  fullPaths:
+    | '/'
+    | '/api/nearby'
+    | '/api/network'
+    | '/api/online'
+    | '/api/rtc'
+    | '/api/storage'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/nearby' | '/api/network' | '/api/online' | '/api/rtc'
+  to:
+    | '/'
+    | '/api/nearby'
+    | '/api/network'
+    | '/api/online'
+    | '/api/rtc'
+    | '/api/storage'
   id:
     | '__root__'
     | '/'
@@ -75,6 +96,7 @@ export interface FileRouteTypes {
     | '/api/network'
     | '/api/online'
     | '/api/rtc'
+    | '/api/storage'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -83,6 +105,7 @@ export interface RootRouteChildren {
   ApiNetworkRoute: typeof ApiNetworkRoute
   ApiOnlineRoute: typeof ApiOnlineRoute
   ApiRtcRoute: typeof ApiRtcRoute
+  ApiStorageRoute: typeof ApiStorageRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -122,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRtcRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/storage': {
+      id: '/api/storage'
+      path: '/api/storage'
+      fullPath: '/api/storage'
+      preLoaderRoute: typeof ApiStorageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -131,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiNetworkRoute: ApiNetworkRoute,
   ApiOnlineRoute: ApiOnlineRoute,
   ApiRtcRoute: ApiRtcRoute,
+  ApiStorageRoute: ApiStorageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

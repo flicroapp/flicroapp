@@ -277,7 +277,7 @@ export function SettingsDrawer({
     <div className="fixed inset-0 z-40 flex">
       <aside className="flex h-full w-[min(100%,20.5rem)] flex-col bg-bg text-ink">
         <div className="safe-top flex items-center gap-3 border-b border-line bg-surface px-4 py-3">
-          <img src="/icon-180.png" alt="" className="size-10 rounded-xl" />
+          <img src="/flicro-icon-180.png" alt="" className="size-10 rounded-xl" />
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold">{name}</p>
             <p className="truncate text-sm text-muted">{account.guest ? "Guest mode" : account.email}</p>
@@ -328,10 +328,10 @@ function Hub({
   onHistory: () => void;
 }) {
   return (
-    <div className="safe-top h-full overflow-y-auto">
+    <div className="safe-top h-full overflow-y-auto bg-bg text-ink">
       <div className="px-4 pt-4">
         <button type="button" className="flex w-full items-center gap-3 py-2 text-left" onClick={() => onPage("profile")}>
-          {loadPhoto() ? <img src={loadPhoto()} alt="" className="size-14 rounded-full object-cover" /> : <img src="/icon-180.png" alt="" className="size-14 rounded-2xl" />}
+          {loadPhoto() ? <img src={loadPhoto()} alt="" className="size-14 rounded-full object-cover" /> : <img src="/flicro-icon-180.png" alt="" className="size-14 rounded-2xl" />}
           <span className="min-w-0 flex-1">
             <span className="block truncate text-xl font-semibold leading-tight">{name}</span>
             <span className="mt-0.5 block truncate text-sm text-muted">{account.guest ? "Guest mode" : account.email}</span>
@@ -450,7 +450,7 @@ function ProfilePage({
   return (
     <div className="px-4 py-5">
       <div className="flex items-center gap-3">
-        {photo ? <img src={photo} alt="" className="size-16 rounded-full object-cover" /> : <img src="/icon-180.png" alt="" className="size-16 rounded-2xl" />}
+        {photo ? <img src={photo} alt="" className="size-16 rounded-full object-cover" /> : <img src="/flicro-icon-180.png" alt="" className="size-16 rounded-2xl" />}
         <div>
           <p className="text-sm text-muted">{account.guest ? "Guest on this device" : account.email}</p>
           <p className="text-sm text-muted">The name and photo are what the other device sees. The photo stays on this device.</p>
@@ -1234,7 +1234,7 @@ function AboutPage({ native, onHow }: { native: boolean; onHow: () => void }) {
   return (
     <article className="px-5 py-6">
       <div className="flex items-center gap-3">
-        <img src="/icon-180.png" alt="" className="size-16 rounded-2xl" />
+        <img src="/flicro-icon-180.png" alt="" className="size-16 rounded-2xl" />
         <div>
           <h2 className="text-lg font-semibold">Flicro</h2>
           <p className="text-sm text-muted">Version {APP_VERSION}</p>

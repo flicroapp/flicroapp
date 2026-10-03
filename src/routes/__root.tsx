@@ -16,7 +16,7 @@ export const Route = createRootRoute({
         name: "description",
         content: "Flicro sends files directly from one device to another with high-speed peer-to-peer Wi-Fi transfer.",
       },
-      { name: "theme-color", content: "#2f7cf6" },
+      { name: "theme-color", content: "#ffffff" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
     ],
     links: [
@@ -32,7 +32,7 @@ export const Route = createRootRoute({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: "/* href=\"/__grok/manifest.webmanifest\" */try{document.documentElement.style.background='#2f7cf6';if(localStorage.getItem('flicro-theme')==='dark'){document.documentElement.dataset.theme='dark'}}catch(e){}",
+            __html: "/* href=\"/__grok/manifest.webmanifest\" */try{if(localStorage.getItem('flicro-theme')==='dark'){document.documentElement.dataset.theme='dark'}}catch(e){}",
           }}
         />
         <HeadContent />

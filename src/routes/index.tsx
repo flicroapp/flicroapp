@@ -66,7 +66,7 @@ function Page() {
   }, [urlRoom, join, navigate]);
 
   return (
-    <div className="flex h-dvh w-full flex-col overflow-hidden bg-flicro-sky text-white">
+    <div className="flex h-dvh w-full flex-col overflow-hidden bg-bg text-ink">
       {urlRoom && peerId && name ? (
         <FlicroApp
           room={urlRoom}
@@ -95,13 +95,18 @@ function Page() {
           }}
         />
       ) : (
-        <div className="flex h-full w-full flex-col items-center justify-center bg-flicro-sky text-white">
-          <div className="size-16 rounded-2xl bg-white/20 p-3 backdrop-blur-md">
-            <div className="h-full w-full rounded-xl bg-white/40" />
+        <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-[#1877f2] to-[#1462cb] text-white select-none">
+          <div className="relative group">
+            <div className="absolute -inset-2 rounded-3xl bg-white/20 blur-lg animate-pulse" />
+            <img
+              src="/flicro-icon-180.png"
+              alt="Flicro"
+              className="relative size-20 rounded-3xl shadow-2xl border-2 border-white/40"
+            />
           </div>
-          <p className="mt-4 text-2xl font-bold tracking-tight">Flicro</p>
-          <p className="mt-1 text-sm text-white/80">
-            {urlRoom ? `Starting ${formatCode(urlRoom)}…` : "Getting a code ready…"}
+          <p className="mt-5 text-2xl font-extrabold tracking-tight">Flicro</p>
+          <p className="mt-1.5 text-xs text-white/85 font-medium tracking-wide">
+            {urlRoom ? `Starting ${formatCode(urlRoom)}…` : "Fast Direct File Transfer"}
           </p>
         </div>
       )}
