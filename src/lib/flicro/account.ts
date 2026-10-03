@@ -55,8 +55,16 @@ export async function signUpEmail(email: string, password: string): Promise<Acco
   return passwordRequest("signUp", email.trim(), password, "Could not create the account.");
 }
 
-/** Opens Google. If the popup is blocked, the browser continues at Google and comes back. */
+/** Opens Google One Tap if configured. Falls back to popup. */
 export async function signInGoogle(): Promise<Account> {
+  if (firebaseConfig.googleClientId) {
+    try {
+      return await signInGoogleOneTap();
+    } catch (e) {
+      console.warn("One Tap skipped or failed, falling back to popup", e);
+    }
+  }
+
   const auth = await googleAuth();
   const { GoogleAuthProvider, signInWithPopup, signInWithRedirect } = await import("firebase/auth");
   const provider = new GoogleAuthProvider();
@@ -75,6 +83,43 @@ export async function signInGoogle(): Promise<Account> {
     sessionStorage.removeItem(GOOGLE_PENDING);
     throw new Error(friendlyAuthError(err, "Google sign-in failed."));
   }
+}
+
+async function signInGoogleOneTap(): Promise<Account> {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    
+    script.onload = () => {
+      // @ts-expect-error Google Identity Services API
+      google.accounts.id.initialize({
+        client_id: firebaseConfig.googleClientId,
+        use_fedcm_for_prompt: true,
+        callback: async (response: any) => {
+          try {
+            const auth = await googleAuth();
+            const { GoogleAuthProvider, signInWithCredential } = await import("firebase/auth");
+            const credential = GoogleAuthProvider.credential(response.credential);
+            const userCredential = await signInWithCredential(auth, credential);
+            resolve(await persistFirebaseUser(userCredential.user));
+          } catch (err) {
+            reject(new Error(friendlyAuthError(err, "One Tap sign-in failed.")));
+          }
+        },
+      });
+      // @ts-expect-error Google Identity Services API
+      google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          reject(new Error("One Tap prompt closed or blocked."));
+        }
+      });
+    };
+    
+    script.onerror = () => reject(new Error("Failed to load Google Identity Services."));
+    document.body.appendChild(script);
+  });
 }
 
 let redirectOnce: Promise<Account | null> | null = null;

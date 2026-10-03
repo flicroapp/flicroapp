@@ -13,6 +13,9 @@ export const firebaseConfig = {
   messagingSenderId: "43061476953",
   appId: "1:43061476953:web:6aa058d50caadb75f93b48",
   measurementId: "G-KHBQK55QVN",
+  // TODO: Add your Google OAuth Web Client ID here for the seamless One Tap login.
+  // Example: "123456789-abc123xyz.apps.googleusercontent.com"
+  googleClientId: "", 
 };
 
 export function firebaseApiKey(): string {
