@@ -345,15 +345,30 @@ function Hub({
             {group.title === "Transfers" ? (
               <NavRow icon={<History className="size-5" />} label="Transfer history" onClick={onHistory} />
             ) : null}
-            {group.items.map((item) => (
-              <NavRow
-                key={item.page}
-                icon={item.icon}
-                label={rowLabel(item, account)}
-                value={rowValue(item, account) ?? item.hint}
-                onClick={() => onPage(item.page)}
-              />
-            ))}
+            {group.items.map((item) => {
+              const label = rowLabel(item, account);
+              const value = rowValue(item, account) ?? item.hint;
+
+              if (item.page === "privacy" || item.page === "terms" || item.page === "legal") {
+                return (
+                  <a key={item.page} href={`/${item.page}`} className="flex min-h-12 w-full items-center gap-3 border-b border-line px-3 text-left last:border-b-0 cursor-pointer hover:bg-slate-50/50">
+                    <span className="text-sky">{item.icon}</span>
+                    <span className="min-w-0 flex-1 truncate text-[15px]">{label}</span>
+                    <ChevronRight className="size-4 shrink-0 text-muted" />
+                  </a>
+                );
+              }
+
+              return (
+                <NavRow
+                  key={item.page}
+                  icon={item.icon}
+                  label={label}
+                  value={value}
+                  onClick={() => onPage(item.page)}
+                />
+              );
+            })}
           </Group>
         ))}
         <p className="pt-1 text-center text-xs text-muted">Flicro {APP_VERSION}</p>
