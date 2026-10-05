@@ -274,193 +274,128 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
   }, [contacts, searchQuery]);
 
   return (
-    <div className="flex h-full w-full flex-col bg-[#f8fafc] text-slate-800 select-none overflow-y-auto font-sans">
-      {/* Header */}
-      <header className="safe-top flex shrink-0 items-center justify-between px-4 py-2.5 bg-white border-b border-slate-100 shadow-[0_1px_2px_rgba(0,0,0,0.02)] z-20">
-        <div className="flex items-center gap-2">
-          {onBack && (
-            <button
-              type="button"
-              onClick={onBack}
-              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer"
-            >
-              <X className="size-5" />
-            </button>
-          )}
-          <h1 className="text-base font-bold text-slate-900">Contacts</h1>
-        </div>
-
+    <div className="flex h-full flex-col bg-bg text-ink font-sans">
+      {/* Header matching Settings PageShell */}
+      <header className="safe-top flex shrink-0 items-center gap-1 border-b border-line bg-surface px-1">
+        {onBack ? (
+          <button type="button" className="flex size-11 items-center justify-center" onClick={onBack} aria-label="Back">
+            <ArrowLeft className="size-5" />
+          </button>
+        ) : (
+          <div className="size-2" />
+        )}
+        <h1 className="min-w-0 flex-1 truncate pr-3 text-[17px] font-semibold">Contacts</h1>
         <button
           type="button"
           onClick={() => setActiveModal("add")}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#1877f2] text-white text-xs font-semibold hover:bg-[#1466e3] active:scale-95 transition-all shadow-xs cursor-pointer"
+          className="flex h-8 items-center gap-1 rounded-lg bg-sky px-3 text-sm font-semibold text-white mr-2"
         >
-          <Plus className="size-3.5" />
+          <Plus className="size-4" />
           <span>New</span>
         </button>
       </header>
 
-      {/* Main Container */}
-      <main className="flex-1 px-4 py-3 max-w-lg mx-auto w-full space-y-3.5 pb-8">
+      {/* Main Container matching Settings Layout */}
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
         {syncToast && (
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3.5 py-2.5 rounded-xl shadow-xs animate-in fade-in flex items-center justify-between">
-            <span>{syncToast}</span>
-            <Check className="size-4 text-emerald-600" />
-          </div>
+          <p className="mb-4 text-sm font-semibold text-sky">{syncToast}</p>
         )}
 
-        {/* Sleek Grouped Utility Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 divide-y divide-slate-100/80 overflow-hidden">
-          {/* Item 1: All Contacts */}
-          <button
-            type="button"
-            onClick={() => setActiveModal("all")}
-            className="flex w-full items-center justify-between p-3 text-left hover:bg-slate-50/80 active:bg-slate-100 transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="size-8 rounded-lg bg-blue-50 text-[#1877f2] flex items-center justify-center shrink-0">
-                <Contact className="size-4" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-xs font-semibold text-slate-800">All Contacts</h3>
-                <p className="text-[11px] text-slate-400">{contacts.length} saved</p>
-              </div>
-            </div>
-            <ChevronRight className="size-4 text-slate-400 shrink-0" />
-          </button>
-
-          {/* Item 2: Duplicate Contacts */}
-          <button
-            type="button"
-            onClick={() => setActiveModal("duplicates")}
-            className="flex w-full items-center justify-between p-3 text-left hover:bg-slate-50/80 active:bg-slate-100 transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="size-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                <Users className="size-4" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-xs font-semibold text-slate-800">Duplicate Contacts</h3>
-                <p className="text-[11px] text-slate-400">{duplicateContacts.length} found</p>
-              </div>
-            </div>
-            <ChevronRight className="size-4 text-slate-400 shrink-0" />
-          </button>
-
-          {/* Item 3: Incomplete Contacts */}
-          <button
-            type="button"
-            onClick={() => setActiveModal("incomplete")}
-            className="flex w-full items-center justify-between p-3 text-left hover:bg-slate-50/80 active:bg-slate-100 transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="size-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                <UserRound className="size-4" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-xs font-semibold text-slate-800">Incomplete Contacts</h3>
-                <p className="text-[11px] text-slate-400">{incompleteContacts.length} items</p>
-              </div>
-            </div>
-            <ChevronRight className="size-4 text-slate-400 shrink-0" />
-          </button>
-
-          {/* Item 4: Backup & Export */}
-          <button
-            type="button"
-            onClick={handleBackup}
-            className="flex w-full items-center justify-between p-3 text-left hover:bg-slate-50/80 active:bg-slate-100 transition-colors cursor-pointer"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="size-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                <Download className="size-4" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-xs font-semibold text-slate-800">Backup & Export</h3>
-                <p className="text-[11px] text-slate-400">Save as standard .vcf</p>
-              </div>
-            </div>
-            <ChevronRight className="size-4 text-slate-400 shrink-0" />
-          </button>
-        </div>
-
-        {/* Sync / Import Button */}
-        <button
-          type="button"
-          onClick={handleImportNative}
-          className="w-full py-3 px-4 rounded-xl bg-white border border-slate-200/80 hover:bg-slate-50 text-[#1877f2] font-semibold text-xs flex items-center justify-center gap-2 shadow-xs active:scale-[0.99] transition-all cursor-pointer"
-        >
-          <Upload className="size-4" />
-          <span>Import Contacts (.vcf or Device)</span>
-        </button>
-
-        {/* Contacts Preview List / Empty State */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Device Contacts List</h2>
-            <span className="text-[11px] text-slate-400">{contacts.length} total</span>
+        <section>
+          <h2 className="px-1 pb-1.5 text-[13px] font-medium text-muted">Management</h2>
+          <div className="overflow-hidden rounded-xl border border-line bg-surface">
+            <button type="button" onClick={() => setActiveModal("all")} className="flex min-h-12 w-full items-center gap-3 border-b border-line px-3 text-left last:border-b-0">
+              <span className="text-sky"><Contact className="size-5" /></span>
+              <span className="min-w-0 flex-1 truncate text-[15px]">All Contacts</span>
+              <span className="max-w-[7.5rem] truncate text-sm text-muted">{contacts.length} saved</span>
+              <ChevronRight className="size-4 shrink-0 text-muted" />
+            </button>
+            <button type="button" onClick={() => setActiveModal("duplicates")} className="flex min-h-12 w-full items-center gap-3 border-b border-line px-3 text-left last:border-b-0">
+              <span className="text-sky"><Users className="size-5" /></span>
+              <span className="min-w-0 flex-1 truncate text-[15px]">Duplicate Contacts</span>
+              <span className="max-w-[7.5rem] truncate text-sm text-muted">{duplicateContacts.length} found</span>
+              <ChevronRight className="size-4 shrink-0 text-muted" />
+            </button>
+            <button type="button" onClick={() => setActiveModal("incomplete")} className="flex min-h-12 w-full items-center gap-3 border-b border-line px-3 text-left last:border-b-0">
+              <span className="text-sky"><UserRound className="size-5" /></span>
+              <span className="min-w-0 flex-1 truncate text-[15px]">Incomplete Contacts</span>
+              <span className="max-w-[7.5rem] truncate text-sm text-muted">{incompleteContacts.length} items</span>
+              <ChevronRight className="size-4 shrink-0 text-muted" />
+            </button>
+            <button type="button" onClick={handleBackup} className="flex min-h-12 w-full items-center gap-3 border-b border-line px-3 text-left last:border-b-0">
+              <span className="text-sky"><Download className="size-5" /></span>
+              <span className="min-w-0 flex-1 truncate text-[15px]">Backup & Export</span>
+              <span className="max-w-[7.5rem] truncate text-sm text-muted">.vcf file</span>
+              <ChevronRight className="size-4 shrink-0 text-muted" />
+            </button>
           </div>
+        </section>
 
-          {contacts.length > 0 ? (
-            <>
-              <div className="divide-y divide-slate-100">
-                {contacts.slice(0, 5).map((contact) => (
-                  <div key={contact.id} className="py-2.5 flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="size-7 rounded-full bg-blue-50 text-[#1877f2] font-bold text-xs flex items-center justify-center">
-                        {contact.name.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-800">{contact.name}</p>
-                        <p className="text-[10px] text-slate-400">{contact.phone || contact.email || "No contact info"}</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteContact(contact.id)}
-                      className="text-slate-300 hover:text-rose-500 p-1 transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+        <section className="mt-6">
+           <h2 className="px-1 pb-1.5 text-[13px] font-medium text-muted">Device Contacts</h2>
+           
+           {contacts.length > 0 ? (
+             <div className="overflow-hidden rounded-xl border border-line bg-surface">
+               {contacts.slice(0, 5).map((contact) => (
+                 <div key={contact.id} className="flex min-h-12 w-full items-center gap-3 border-b border-line px-3 text-left last:border-b-0">
+                   <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-line text-[11px] font-bold">
+                     {contact.name.charAt(0)}
+                   </div>
+                   <div className="min-w-0 flex-1">
+                     <p className="truncate text-[15px]">{contact.name}</p>
+                     <p className="truncate text-[13px] text-muted">{contact.phone || contact.email || "No contact info"}</p>
+                   </div>
+                   <button
+                     type="button"
+                     onClick={() => handleDeleteContact(contact.id)}
+                     className="p-1 text-muted hover:text-warn"
+                   >
+                     <Trash2 className="size-4" />
+                   </button>
+                 </div>
+               ))}
+               {contacts.length > 5 && (
+                 <button
+                   type="button"
+                   onClick={() => setActiveModal("all")}
+                   className="flex min-h-12 w-full items-center justify-center gap-2 border-b border-line px-3 text-[15px] font-semibold text-sky last:border-b-0"
+                 >
+                   View all {contacts.length} contacts
+                 </button>
+               )}
+             </div>
+           ) : (
+             <div className="overflow-hidden rounded-xl border border-line bg-surface p-6 text-center">
+               <UserCheck className="mx-auto mb-3 size-10 text-sky" />
+               <p className="text-[15px] font-semibold">Sync Device Contacts</p>
+               <p className="mt-1 text-sm text-muted">
+                 Securely access your phone's address book to easily share files with friends.
+               </p>
+               <button
+                 type="button"
+                 onClick={handleImportNative}
+                 className="mt-4 h-11 w-full rounded-xl bg-sky font-semibold text-white"
+               >
+                 Allow Contacts Access
+               </button>
+               <p className="mt-4 text-xs text-muted">
+                 * Note: Apple blocks automatic sync on iPhones. iOS Safari will prompt for a manual .vcf upload instead.
+               </p>
+             </div>
+           )}
+        </section>
 
-              {contacts.length > 5 && (
-                <button
-                  type="button"
-                  onClick={() => setActiveModal("all")}
-                  className="w-full text-center text-xs font-bold text-[#1877f2] pt-1 hover:underline cursor-pointer"
-                >
-                  View all {contacts.length} contacts
-                </button>
-              )}
-            </>
-          ) : (
-            <div className="py-6 flex flex-col items-center text-center space-y-4">
-              <div className="w-16 h-16 bg-blue-50 text-[#1877f2] rounded-full flex items-center justify-center mb-2">
-                <UserCheck className="size-8" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-bold text-slate-900">Sync Device Contacts</p>
-                <p className="text-xs text-slate-500 max-w-[240px]">
-                  Securely access your phone's address book to easily share files with friends.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleImportNative}
-                className="mt-2 w-full max-w-[240px] bg-[#1877f2] hover:bg-blue-700 text-white py-3 rounded-2xl font-bold transition-transform active:scale-95 cursor-pointer shadow-sm"
-              >
-                Allow Contacts Access
-              </button>
-              <p className="text-[10px] text-slate-400 max-w-[240px] mt-4">
-                * Note: Apple blocks automatic sync on iPhones. iOS Safari will prompt for a manual .vcf upload instead.
-              </p>
-            </div>
-          )}
-        </div>
-      </main>
+        {contacts.length > 0 && (
+          <button
+            type="button"
+            onClick={handleImportNative}
+            className="mt-4 h-11 w-full rounded-xl border border-line bg-surface font-semibold text-sky flex items-center justify-center gap-2"
+          >
+            <Upload className="size-4" />
+            <span>Import Contacts (.vcf or Device)</span>
+          </button>
+        )}
+      </div>
 
       {/* Hidden vCard File Input */}
       <input
