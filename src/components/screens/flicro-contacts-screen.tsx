@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from "react";
 import {
+  ArrowLeft,
   Users,
   UserRound,
   ChevronRight,
