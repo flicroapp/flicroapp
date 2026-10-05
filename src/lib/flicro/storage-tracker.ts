@@ -21,10 +21,10 @@ export async function calculateDeviceStorage(): Promise<DeviceStorageStats> {
   // 1. Try Native App Bypass to get REAL hardware storage
   try {
     const { Device } = await import("@capacitor/device");
-    const info = await Device.getInfo();
-    if (info && info.realDiskTotal && info.realDiskTotal > 0) {
-      totalBytes = info.realDiskTotal;
-      availableBytes = info.realDiskFree || 0;
+    const info = await Device.getInfo() as any;
+    if (info && (info.realDiskTotal || info.diskTotal) && (info.realDiskTotal || info.diskTotal) > 0) {
+      totalBytes = info.realDiskTotal || info.diskTotal;
+      availableBytes = info.realDiskFree || info.diskFree || 0;
       usedBytes = totalBytes - availableBytes;
       
       return {
