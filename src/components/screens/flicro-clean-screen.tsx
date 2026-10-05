@@ -235,126 +235,103 @@ export function CleanScreen({ onBack }: CleanScreenProps) {
 
   // View 1: Main "Clean" Hub
   return (
-    <div className="flex h-full w-full flex-col bg-[#f8fafd] text-slate-900 select-none overflow-y-auto font-sans">
-      {/* Header */}
-      <header className="safe-top flex shrink-0 items-center justify-between px-4 pt-3 pb-2 bg-white border-b border-slate-100 shadow-sm z-20">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex size-10 items-center justify-center rounded-full hover:bg-slate-100 active:scale-90 text-slate-800 cursor-pointer"
-          aria-label="Back"
-        >
-          <ArrowLeft className="size-6 stroke-[2.4]" />
+    <div className="flex h-full flex-col bg-bg text-ink font-sans">
+      {/* Header matching Settings PageShell */}
+      <header className="safe-top flex shrink-0 items-center gap-1 border-b border-line bg-surface px-1">
+        <button type="button" className="flex size-11 items-center justify-center" onClick={onBack} aria-label="Back">
+          <ArrowLeft className="size-5" />
         </button>
-        <h1 className="text-base sm:text-lg font-bold text-slate-900">Storage Clean</h1>
-        <div className="size-10" />
+        <h1 className="min-w-0 flex-1 truncate pr-3 text-[17px] font-semibold">Storage & Cleanup</h1>
       </header>
 
-      {/* Main Container */}
-      <main className="flex-1 px-4 py-4 space-y-4 max-w-lg mx-auto w-full pb-8">
-        {/* Real Hardware Storage Overview Card */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="size-11 rounded-2xl bg-blue-50 text-[#1877f2] flex items-center justify-center">
-                <HardDrive className="size-6" />
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-slate-900">
-                  App Storage
-                </h2>
-                <p className="text-xs text-slate-500 font-medium">
-                  {formatBytes(currentStats.usedBytes)} used of {formatBytes(currentStats.totalBytes)}
-                </p>
-              </div>
-            </div>
+      {/* Main Container matching Settings Layout */}
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
+        
+        {/* Device Storage Section */}
+        <section>
+          <div className="flex items-center justify-between px-1 pb-1.5">
+            <h2 className="text-[13px] font-medium text-muted">Device Storage</h2>
             <button
               type="button"
               onClick={refreshStorage}
-              className={`p-2 text-slate-400 hover:text-slate-700 transition-colors cursor-pointer ${
-                loading ? "animate-spin text-[#1877f2]" : ""
+              className={`text-muted hover:text-ink transition-colors cursor-pointer ${
+                loading ? "animate-spin text-sky" : ""
               }`}
-              title="Refresh Real Hardware Storage"
+              title="Refresh Storage"
             >
-              <RefreshCw className="size-4" />
+              <RefreshCw className="size-3.5" />
             </button>
           </div>
-
-          {/* Real Storage Meter */}
-          <div className="space-y-1.5">
-            <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden p-0.5 flex">
+          <div className="overflow-hidden rounded-xl border border-line bg-surface px-4 py-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[15px] font-medium">App Storage</span>
+              <span className="text-[15px] text-muted">{currentStats.usedPercent}% Used</span>
+            </div>
+            
+            <div className="mt-3 h-2 w-full bg-line rounded-full overflow-hidden flex">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-[#1877f2] rounded-full transition-all duration-500"
+                className="h-full bg-sky transition-all duration-500"
                 style={{ width: `${Math.max(currentStats.usedPercent, 2)}%` }}
               />
             </div>
-            <div className="flex justify-between text-[11px] text-slate-500 font-semibold">
-              <span>{currentStats.usedPercent}% Used</span>
-              <span className="text-emerald-600 font-bold">
-                {formatBytes(currentStats.availableBytes)} Available
+            
+            <div className="mt-2.5 flex justify-between text-[13px] text-muted">
+              <span>{formatBytes(currentStats.usedBytes)} used</span>
+              <span>{formatBytes(currentStats.availableBytes)} available</span>
+            </div>
+          </div>
+        </section>
+
+        {/* Tools Section */}
+        <section className="mt-6">
+          <h2 className="px-1 pb-1.5 text-[13px] font-medium text-muted">Tools</h2>
+          <div className="overflow-hidden rounded-xl border border-line bg-surface">
+            <button
+              type="button"
+              onClick={handleCleanCache}
+              disabled={cacheCleaned}
+              className="flex min-h-12 w-full items-center gap-3 border-b border-line px-3 text-left last:border-b-0"
+            >
+              <span className="text-sky"><Sparkles className="size-5" /></span>
+              <span className="min-w-0 flex-1 truncate text-[15px]">Clear Cache</span>
+              <span className="max-w-[7.5rem] truncate text-sm text-muted">
+                {cacheCleaned ? "Cleaned" : "Free storage"}
               </span>
-            </div>
-          </div>
-
-          {/* Clean App Cache Button */}
-          <button
-            type="button"
-            onClick={handleCleanCache}
-            disabled={cacheCleaned}
-            className="w-full h-11 rounded-2xl bg-[#1877f2] hover:bg-[#1466e3] text-white font-bold text-xs shadow-sm active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
-          >
-            <Sparkles className="size-4" />
-            {cacheCleaned ? "Cache Cleaned!" : "Clean App & Temporary Cache"}
-          </button>
-
-          {cleanedAmount && (
-            <p className="text-center text-xs font-bold text-emerald-600 animate-in fade-in">
-              Successfully cleared {cleanedAmount} of cached files!
-            </p>
-          )}
-        </div>
-
-        {/* Real Duplicate Scanner Card */}
-        <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="size-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                <FolderOpen className="size-6" />
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">Duplicate Photos & Files</h3>
-                <p className="text-xs text-slate-500">
-                  {scannedFiles.length > 0
-                    ? `${scannedFiles.length} files scanned · ${duplicateGroups.length} duplicates`
-                    : "Scan device files to detect duplicates"}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
+            </button>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="w-full h-12 rounded-2xl border-2 border-dashed border-[#1877f2]/30 hover:border-[#1877f2] bg-blue-50/50 hover:bg-blue-50 text-[#1877f2] font-bold text-xs active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+              className="flex min-h-12 w-full items-center gap-3 border-b border-line px-3 text-left last:border-b-0"
             >
-              <FolderOpen className="size-4" />
-              {isScanning ? "Scanning Files..." : "Select Files or Folder to Scan"}
+              <span className="text-sky"><FolderOpen className="size-5" /></span>
+              <span className="min-w-0 flex-1 truncate text-[15px]">Duplicate Photos & Files</span>
+              <span className="max-w-[7.5rem] truncate text-sm text-muted">
+                {isScanning ? "Scanning..." : "Scan device"}
+              </span>
             </button>
+          </div>
+        </section>
 
-            {duplicateGroups.length > 0 && (
+        {/* Scan Results */}
+        {duplicateGroups.length > 0 && (
+          <section className="mt-6">
+            <h2 className="px-1 pb-1.5 text-[13px] font-medium text-muted">Scan Results</h2>
+            <div className="overflow-hidden rounded-xl border border-line bg-surface">
               <button
                 type="button"
                 onClick={() => setView("similar_photos")}
-                className="w-full h-11 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="flex min-h-12 w-full items-center gap-3 border-b border-line px-3 text-left last:border-b-0"
               >
-                View & Clean {duplicateGroups.length} Duplicate Sets ({formatBytes(totalDuplicateBytes)})
-                <ChevronRight className="size-4" />
+                <span className="text-warn"><FolderOpen className="size-5" /></span>
+                <span className="min-w-0 flex-1 truncate text-[15px]">Review Duplicates</span>
+                <span className="max-w-[7.5rem] truncate text-sm text-muted">{duplicateGroups.length} sets</span>
+                <ChevronRight className="size-4 shrink-0 text-muted" />
               </button>
-            )}
-          </div>
-        </div>
-      </main>
+            </div>
+          </section>
+        )}
+
+      </div>
 
       {/* Hidden file input for real duplicate scanning */}
       <input
