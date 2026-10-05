@@ -437,10 +437,25 @@ export function ContactsScreen({ onBack }: ContactsScreenProps) {
               )}
             </>
           ) : (
-            <div className="py-8 text-center text-slate-400 space-y-1">
-              <p className="text-xs font-medium text-slate-600">No contacts saved</p>
-              <p className="text-[11px] text-slate-400">
-                Tap "+ New" above or import a .vcf contact file to add your contacts.
+            <div className="py-6 flex flex-col items-center text-center space-y-4">
+              <div className="w-16 h-16 bg-blue-50 text-[#1877f2] rounded-full flex items-center justify-center mb-2">
+                <UserCheck className="size-8" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-slate-900">Sync Device Contacts</p>
+                <p className="text-xs text-slate-500 max-w-[240px]">
+                  Securely access your phone's address book to easily share files with friends.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleImportNative}
+                className="mt-2 w-full max-w-[240px] bg-[#1877f2] hover:bg-blue-700 text-white py-3 rounded-2xl font-bold transition-transform active:scale-95 cursor-pointer shadow-sm"
+              >
+                Allow Contacts Access
+              </button>
+              <p className="text-[10px] text-slate-400 max-w-[240px] mt-4">
+                * Note: Apple blocks automatic sync on iPhones. iOS Safari will prompt for a manual .vcf upload instead.
               </p>
             </div>
           )}
