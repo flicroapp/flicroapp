@@ -17,7 +17,7 @@ export const Route = createRootRoute({
         content: "Flicro sends files directly from one device to another with high-speed peer-to-peer Wi-Fi transfer.",
       },
       { name: "theme-color", content: "#2563eb" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "google-site-verification", content: "ZZQFOj8aLtI565Hjev8yj4bVx6WZG5LFpCjiCKK1JYA" },
     ],
     links: [
@@ -39,6 +39,8 @@ export const Route = createRootRoute({
         <HeadContent />
       </head>
       <body className="font-sans antialiased">
+        {/* iOS Status Bar Solid Color Hack to remove blur and ensure #2563eb */}
+        <div className="fixed inset-x-0 top-0 h-[env(safe-area-inset-top)] bg-[#2563eb] z-[9999]"></div>
         <PreviewHostBridge />
         <AuthProvider>
           <Outlet />
