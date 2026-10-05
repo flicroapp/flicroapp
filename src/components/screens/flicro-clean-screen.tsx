@@ -261,7 +261,7 @@ export function CleanScreen({ onBack }: CleanScreenProps) {
               </div>
               <div>
                 <h2 className="text-sm font-bold text-slate-900">
-                  Device Storage ({currentStats.drivePath})
+                  App Storage
                 </h2>
                 <p className="text-xs text-slate-500 font-medium">
                   {formatBytes(currentStats.usedBytes)} used of {formatBytes(currentStats.totalBytes)}

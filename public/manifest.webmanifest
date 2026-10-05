@@ -5,8 +5,8 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#1877f2",
-  "theme_color": "#1877f2",
+  "background_color": "#2563eb",
+  "theme_color": "#2563eb",
   "icons": [
     { "src": "/flicro-icon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
     { "src": "/flicro-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
