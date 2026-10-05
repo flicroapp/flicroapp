@@ -223,14 +223,14 @@ export function CleanScreen({ onBack }: CleanScreenProps) {
   }
 
   const currentStats = stats || {
-    totalBytes: 255380680704,
-    usedBytes: 103370604544,
-    availableBytes: 152010076160,
-    usedPercent: 40.5,
+    totalBytes: 0,
+    usedBytes: 0,
+    availableBytes: 0,
+    usedPercent: 0,
     vaultBytes: 0,
     appCacheBytes: 0,
-    drivePath: "C:\\",
-    source: "python",
+    drivePath: "",
+    source: "loading",
   };
 
   // View 1: Main "Clean" Hub
