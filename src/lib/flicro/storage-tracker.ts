@@ -18,6 +18,31 @@ export async function calculateDeviceStorage(): Promise<DeviceStorageStats> {
   let usedBytes = vaultBytes;
   let availableBytes = 0;
   
+  // 1. Try Native App Bypass to get REAL hardware storage
+  try {
+    const { Device } = await import("@capacitor/device");
+    const info = await Device.getInfo();
+    if (info && info.realDiskTotal && info.realDiskTotal > 0) {
+      totalBytes = info.realDiskTotal;
+      availableBytes = info.realDiskFree || 0;
+      usedBytes = totalBytes - availableBytes;
+      
+      return {
+        totalBytes,
+        usedBytes,
+        availableBytes,
+        usedPercent: Math.round((usedBytes / totalBytes) * 100),
+        vaultBytes,
+        appCacheBytes: 0,
+        drivePath: "True Hardware Storage",
+        source: "native",
+      };
+    }
+  } catch (e) {
+    // Native API not available, fall back to browser sandbox
+  }
+
+  // 2. Fallback to Browser Quota Sandbox
   if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.estimate) {
     try {
       const estimate = await navigator.storage.estimate();
@@ -30,8 +55,6 @@ export async function calculateDeviceStorage(): Promise<DeviceStorageStats> {
     } catch {}
   }
 
-  // If we couldn't get a real estimate, we won't show fake hardcoded 128GB anymore.
-  // We'll show 0 or the actual used vault bytes, meaning it's "Unknown total"
   const usedPercent = totalBytes > 0 ? Math.round((usedBytes / totalBytes) * 100) : 0;
 
   return {
@@ -41,7 +64,7 @@ export async function calculateDeviceStorage(): Promise<DeviceStorageStats> {
     usedPercent,
     vaultBytes,
     appCacheBytes,
-    drivePath: "Device Storage (App Quota)",
+    drivePath: "App Quota (Web Sandbox)",
     source: "browser",
   };
 }
