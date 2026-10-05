@@ -26,7 +26,10 @@
 }
 
 @layer base {
-  html,
+  html {
+    background-color: var(--color-sky) !important;
+  }
+
   body {
     min-height: 100dvh;
     width: 100%;
@@ -37,6 +40,7 @@
     touch-action: manipulation;
     -webkit-font-smoothing: antialiased;
     text-size-adjust: 100%;
+    overscroll-behavior-y: none;
   }
 
   button:not(:disabled),
